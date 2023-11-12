@@ -4,7 +4,7 @@ type Product struct {
 	EnergySiteId      int64   `json:"energy_site_id,omitempty"`
 	ResourceType      string  `json:"resource_type"`
 	ID                string  `json:"id"`
-	AssetSiteId       string  `json:"asset_site_id"`
+	AssetSiteId       string  `json:"asset_site_id,omitempty"`
 	GatewayId         string  `json:"gateway_id,omitempty"`
 	WarpSiteNumber    string  `json:"warp_site_number,omitempty"`
 	EnergyLeft        float64 `json:"energy_left,omitempty"`
