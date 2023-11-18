@@ -105,6 +105,8 @@ type DriveState struct {
 	Speed                   float64     `json:"speed"`
 	Latitude                float64     `json:"latitude"`
 	Longitude               float64     `json:"longitude"`
+	ActiveRouteLatitude     float64     `json:"active_route_latitude"`
+	ActiveRouteLongitude    float64     `json:"active_route_longitude"`
 	Heading                 int         `json:"heading"`
 	GpsAsOf                 int64       `json:"gps_as_of"`
 	NativeLatitude          float64     `json:"native_latitude"`
