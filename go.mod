@@ -1,4 +1,4 @@
-module github.com/machship-mm/tesla
+module github.com/bogosj/tesla
 
 go 1.18
 
