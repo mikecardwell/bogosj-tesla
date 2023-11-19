@@ -46,21 +46,21 @@ type EnergySiteHistory struct {
 type EnergySiteHistoryTimeSeries struct {
 	Timestamp                           time.Time `json:"timestamp"`
 	SolarEnergyExported                 float64   `json:"solar_energy_exported"`
-	GeneratorEnergyExported             int       `json:"generator_energy_exported"`
+	GeneratorEnergyExported             float64   `json:"generator_energy_exported"`
 	GridEnergyImported                  float64   `json:"grid_energy_imported"`
-	GridServicesEnergyImported          int       `json:"grid_services_energy_imported"`
-	GridServicesEnergyExported          int       `json:"grid_services_energy_exported"`
+	GridServicesEnergyImported          float64   `json:"grid_services_energy_imported"`
+	GridServicesEnergyExported          float64   `json:"grid_services_energy_exported"`
 	GridEnergyExportedFromSolar         float64   `json:"grid_energy_exported_from_solar"`
-	GridEnergyExportedFromGenerator     int       `json:"grid_energy_exported_from_generator"`
+	GridEnergyExportedFromGenerator     float64   `json:"grid_energy_exported_from_generator"`
 	GridEnergyExportedFromBattery       float64   `json:"grid_energy_exported_from_battery"`
-	BatteryEnergyExported               int       `json:"battery_energy_exported"`
+	BatteryEnergyExported               float64   `json:"battery_energy_exported"`
 	BatteryEnergyImportedFromGrid       float64   `json:"battery_energy_imported_from_grid"`
 	BatteryEnergyImportedFromSolar      float64   `json:"battery_energy_imported_from_solar"`
-	BatteryEnergyImportedFromGenerator  int       `json:"battery_energy_imported_from_generator"`
+	BatteryEnergyImportedFromGenerator  float64   `json:"battery_energy_imported_from_generator"`
 	ConsumerEnergyImportedFromGrid      float64   `json:"consumer_energy_imported_from_grid"`
 	ConsumerEnergyImportedFromSolar     float64   `json:"consumer_energy_imported_from_solar"`
 	ConsumerEnergyImportedFromBattery   float64   `json:"consumer_energy_imported_from_battery"`
-	ConsumerEnergyImportedFromGenerator int       `json:"consumer_energy_imported_from_generator"`
+	ConsumerEnergyImportedFromGenerator float64   `json:"consumer_energy_imported_from_generator"`
 }
 
 type SiteInfoResponse struct {
