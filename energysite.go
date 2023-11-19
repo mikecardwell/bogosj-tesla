@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // this represents site_info endpoint
@@ -33,12 +35,44 @@ type EnergySiteStatus struct {
 	c *Client
 }
 
+type EnergySiteHistory struct {
+	SerialNumber string                        `json:"serial_number"`
+	Period       string                        `json:"period"`
+	TimeSeries   []EnergySiteHistoryTimeSeries `json:"time_series"`
+
+	c *Client
+}
+
+type EnergySiteHistoryTimeSeries struct {
+	Timestamp                           time.Time `json:"timestamp"`
+	SolarEnergyExported                 float64   `json:"solar_energy_exported"`
+	GeneratorEnergyExported             float64   `json:"generator_energy_exported"`
+	GridEnergyImported                  float64   `json:"grid_energy_imported"`
+	GridServicesEnergyImported          float64   `json:"grid_services_energy_imported"`
+	GridServicesEnergyExported          float64   `json:"grid_services_energy_exported"`
+	GridEnergyExportedFromSolar         float64   `json:"grid_energy_exported_from_solar"`
+	GridEnergyExportedFromGenerator     float64   `json:"grid_energy_exported_from_generator"`
+	GridEnergyExportedFromBattery       float64   `json:"grid_energy_exported_from_battery"`
+	BatteryEnergyExported               float64   `json:"battery_energy_exported"`
+	BatteryEnergyImportedFromGrid       float64   `json:"battery_energy_imported_from_grid"`
+	BatteryEnergyImportedFromSolar      float64   `json:"battery_energy_imported_from_solar"`
+	BatteryEnergyImportedFromGenerator  float64   `json:"battery_energy_imported_from_generator"`
+	ConsumerEnergyImportedFromGrid      float64   `json:"consumer_energy_imported_from_grid"`
+	ConsumerEnergyImportedFromSolar     float64   `json:"consumer_energy_imported_from_solar"`
+	ConsumerEnergyImportedFromBattery   float64   `json:"consumer_energy_imported_from_battery"`
+	ConsumerEnergyImportedFromGenerator float64   `json:"consumer_energy_imported_from_generator"`
+}
+
 type SiteInfoResponse struct {
 	Response *EnergySite `json:"response"`
 }
 
-type SiteStatutsResponse struct {
+type SiteStatusResponse struct {
 	Response *EnergySiteStatus `json:"response"`
+}
+
+type SiteHistoryResponse struct {
+	Response *EnergySiteHistory `json:"response"`
 }
 
 // SiteCommandResponse is the response from the Tesla API after POSTing a command.
@@ -61,12 +95,30 @@ func (c *Client) EnergySite(productID int64) (*EnergySite, error) {
 }
 
 func (s *EnergySite) EnergySiteStatus() (*EnergySiteStatus, error) {
-	siteStatusResponse := &SiteStatutsResponse{}
+	siteStatusResponse := &SiteStatusResponse{}
 	if err := s.c.getJSON(s.statusPath(), siteStatusResponse); err != nil {
 		return nil, err
 	}
 	siteStatusResponse.Response.c = s.c
 	return siteStatusResponse.Response, nil
+}
+
+type HistoryPeriod string
+
+const (
+	HistoryPeriodDay   HistoryPeriod = "day"
+	HistoryPeriodWeek  HistoryPeriod = "week"
+	HistoryPeriodMonth HistoryPeriod = "month"
+	HistoryPeriodYear  HistoryPeriod = "year"
+)
+
+func (s *EnergySite) EnergySiteHistory(period HistoryPeriod) (*EnergySiteHistory, error) {
+	historyResponse := &SiteHistoryResponse{}
+	if err := s.c.getJSON(s.historyPath(period), historyResponse); err != nil {
+		return nil, err
+	}
+	historyResponse.Response.c = s.c
+	return historyResponse.Response, nil
 }
 
 func (s *EnergySite) basePath() string {
@@ -75,6 +127,14 @@ func (s *EnergySite) basePath() string {
 
 func (s *EnergySite) statusPath() string {
 	return strings.Join([]string{s.basePath(), "site_status"}, "/")
+}
+
+func (s *EnergySite) historyPath(period HistoryPeriod) string {
+	v := url.Values{}
+	v.Set("kind", "energy")
+	v.Set("period", string(period))
+
+	return strings.Join([]string{s.basePath(), "history"}, "/") + fmt.Sprintf("?%s", v.Encode())
 }
 
 func (s *EnergySite) SetBatteryReserve(percent uint64) error {
