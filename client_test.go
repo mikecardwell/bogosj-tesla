@@ -208,4 +208,6 @@ func init() {
 		}
 		return nil
 	}))
+
+	testMux.HandleFunc("/api/1/products", serveJSON(ProductsJSON))
 }
