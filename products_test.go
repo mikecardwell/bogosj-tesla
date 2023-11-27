@@ -3,7 +3,7 @@ package tesla
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	c "github.com/smartystreets/goconvey/convey"
 )
 
 var (
@@ -16,10 +16,10 @@ func TestProductsSpec(t *testing.T) {
 
 	client := NewTestClient(ts)
 
-	Convey("Should get products", t, func() {
+	c.Convey("Should get products", t, func() {
 		products, err := client.Products()
-		So(err, ShouldBeNil)
-		So((string)(products[0].ID), ShouldEqual, "1234567890123456")
-		So((string)(products[1].ID), ShouldEqual, "STE19700101-00001")
+		c.So(err, c.ShouldBeNil)
+		c.So((string)(products[0].ID), c.ShouldEqual, "1234567890123456")
+		c.So((string)(products[1].ID), c.ShouldEqual, "STE19700101-00001")
 	})
 }
