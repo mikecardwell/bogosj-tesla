@@ -10,12 +10,25 @@ import (
 	"time"
 )
 
+type CustomerPreferredExportRule string
+
+const (
+	PvOnly    CustomerPreferredExportRule = "pv_only"
+	BatteryOk CustomerPreferredExportRule = "battery_ok"
+)
+
+type EnergySiteComponents struct {
+	DisallowChargeFromGridWithSolarInstalled bool                        `json:"disallow_charge_from_grid_with_solar_installed"`
+	CustomerPreferredExportRule              CustomerPreferredExportRule `json:"customer_preferred_export_rule"`
+}
+
 // this represents site_info endpoint
 type EnergySite struct {
-	ID                   string `json:"id"`
-	SiteName             string `json:"site_name"`
-	BackupReservePercent int64  `json:"backup_reserve_percent,omitempty"`
-	DefaultRealMode      string `json:"default_real_mode,omitempty"`
+	ID                   string               `json:"id"`
+	SiteName             string               `json:"site_name"`
+	BackupReservePercent int64                `json:"backup_reserve_percent,omitempty"`
+	DefaultRealMode      string               `json:"default_real_mode,omitempty"`
+	Components           EnergySiteComponents `json:"components,omitempty"`
 
 	productId int64
 	c         *Client
@@ -137,6 +150,32 @@ func (s *EnergySite) historyPath(period HistoryPeriod) string {
 	return strings.Join([]string{s.basePath(), "history"}, "/") + fmt.Sprintf("?%s", v.Encode())
 }
 
+func (s *EnergySite) SetGridCharging(enabled bool) error {
+	url := s.basePath() + "/grid_import_export"
+	payload := fmt.Sprintf(`{"disallow_charge_from_grid_with_solar_installed":%t}`, !enabled)
+
+	if _, err := s.sendCommandExpectingEmptyResponse(url, []byte(payload)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *EnergySite) SetExportRule(exportRule CustomerPreferredExportRule) error {
+	if exportRule != PvOnly && exportRule != BatteryOk {
+		return errors.New("invalid arg supplied to SetExportRule")
+	}
+
+	url := s.basePath() + "/grid_import_export"
+	payload := fmt.Sprintf(`{"customer_preferred_export_rule": "%s"}`, exportRule)
+
+	if _, err := s.sendCommandExpectingEmptyResponse(url, []byte(payload)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *EnergySite) SetBatteryReserve(percent uint64) error {
 	url := s.basePath() + "/backup"
 	payload := fmt.Sprintf(`{"backup_reserve_percent":%d}`, percent)
@@ -170,6 +209,23 @@ func (s *EnergySite) sendCommand(url string, reqBody []byte) ([]byte, error) {
 		}
 		if !response.Response.Result && response.Response.Reason != "" {
 			return nil, errors.New(response.Response.Reason)
+		}
+	}
+	return body, nil
+}
+
+func (s *EnergySite) sendCommandExpectingEmptyResponse(url string, reqBody []byte) ([]byte, error) {
+	body, err := s.c.post(url, reqBody)
+	if err != nil {
+		return nil, err
+	}
+	if len(body) > 0 {
+		response := &CommandEmptyResponse{}
+		if err := json.Unmarshal(body, response); err != nil {
+			return nil, err
+		}
+		if response.Response != "" {
+			return nil, errors.New(fmt.Sprintf("Unexpected response: %s", body))
 		}
 	}
 	return body, nil
