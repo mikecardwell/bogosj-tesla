@@ -154,7 +154,7 @@ func (s *EnergySite) SetGridCharging(enabled bool) error {
 	url := s.basePath() + "/grid_import_export"
 	payload := fmt.Sprintf(`{"disallow_charge_from_grid_with_solar_installed":%t}`, !enabled)
 
-	if _, err := s.sendCommandExpectingEmptyResponse(url, []byte(payload)); err != nil {
+	if err := s.sendCommandExpectingEmptyResponse(url, []byte(payload)); err != nil {
 		return err
 	}
 
@@ -169,7 +169,7 @@ func (s *EnergySite) SetExportRule(exportRule CustomerPreferredExportRule) error
 	url := s.basePath() + "/grid_import_export"
 	payload := fmt.Sprintf(`{"customer_preferred_export_rule": "%s"}`, exportRule)
 
-	if _, err := s.sendCommandExpectingEmptyResponse(url, []byte(payload)); err != nil {
+	if err := s.sendCommandExpectingEmptyResponse(url, []byte(payload)); err != nil {
 		return err
 	}
 
@@ -214,19 +214,19 @@ func (s *EnergySite) sendCommand(url string, reqBody []byte) ([]byte, error) {
 	return body, nil
 }
 
-func (s *EnergySite) sendCommandExpectingEmptyResponse(url string, reqBody []byte) ([]byte, error) {
+func (s *EnergySite) sendCommandExpectingEmptyResponse(url string, reqBody []byte) error {
 	body, err := s.c.post(url, reqBody)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(body) > 0 {
 		response := &CommandEmptyResponse{}
 		if err := json.Unmarshal(body, response); err != nil {
-			return nil, err
+			return err
 		}
 		if response.Response != "" {
-			return nil, errors.New(fmt.Sprintf("Unexpected response: %s", body))
+			return errors.New(fmt.Sprintf("Unexpected response: %s", body))
 		}
 	}
-	return body, nil
+	return nil
 }
