@@ -95,6 +95,13 @@ type LiveStatusResponse struct {
 	Response LiveStatus `json:"response"`
 }
 
+type OperationMode string
+
+const (
+	Autonomous      OperationMode = "autonomous"
+	SelfConsumption OperationMode = "self_consumption"
+)
+
 type SiteInfoResponse struct {
 	Response *EnergySite `json:"response"`
 }
@@ -221,6 +228,30 @@ func (s *EnergySite) SetStormMode(enabled bool) error {
 
 	if response.Response.Code != 201 {
 		return fmt.Errorf("setStormMode failed: %s", response.Response.Message)
+	}
+
+	return nil
+}
+
+func (s *EnergySite) SetOperationMode(operationMode OperationMode) error {
+	if operationMode != Autonomous && operationMode != SelfConsumption {
+		return errors.New("invalid arg supplied to SetOperationMode")
+	}
+
+	url := s.basePath() + "/operation"
+	payload := fmt.Sprintf(`{"default_real_mode":"%s"}`, operationMode)
+	body, err := s.sendCommand(url, []byte(payload))
+	if err != nil {
+		return err
+	}
+
+	response := SiteCommandResponse{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return err
+	}
+
+	if response.Response.Code != 201 {
+		return fmt.Errorf("operationMode failed: %s", response.Response.Message)
 	}
 
 	return nil
